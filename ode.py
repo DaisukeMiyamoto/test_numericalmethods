@@ -62,25 +62,44 @@ class SolveODE():
     def calc_all(self):
         self.calc_euler()
         self.calc_heun()
+        self.calc_rk4()
         
     def calc_euler(self):
+        f = self.f
+        h = self.h
+        x = self.x
         y = [self.y0]
         for i in xrange(self.n):
-            y.append(y[-1] + self.h * self.f(self.x[i], y[-1]))
+            y.append(y[-1] + h * f(x[i], y[-1]))
             
-        self.result['euler'] = y
+        self.result['Euler'] = y
         return y
         
     def calc_heun(self):
+        f = self.f
+        h = self.h
+        x = self.x
         y = [self.y0]
         for i in xrange(self.n):
-            k1 = self.f(self.x[i], y[-1])
-            k2 = self.f(self.x[i], y[-1]+self.h*k1)
-            y.append(y[-1] + self.h / 2.0 * (k1 + k2))
+            k1 = f(x[i], y[-1])
+            k2 = f(x[i], y[-1]+h*k1)
+            y.append(y[-1] + h / 2.0 * (k1 + k2))
         
-        self.result['heun'] = y
+        self.result['Heun'] = y
         return y
         
+    def calc_rk4(self):
+        f = self.f
+        h = self.h
+        x = self.x
+        y = [self.y0]
+        for i in xrange(self.n):
+            k1 = f(x[i],           y[-1])
+            k2 = f(x[i] + h / 2.0, y[-1] + h*k1/2.0)
+            k3 = f(x[i] + h / 2.0, y[-1] + h*k2/2.0)
+            k4 = f(x[i] + h,       y[-1] + h*k3)
+            y.append(y[-1] + h / 6.0 * (k1 + 2.0*k2 + 2.0*k3 + k4))
+        self.result['RK4'] = y
 
 if __name__ == '__main__':
     def func0(x, y):
