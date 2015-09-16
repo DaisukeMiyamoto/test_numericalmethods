@@ -9,7 +9,8 @@ import matplotlib.pyplot as plt
 
 class HodgkinHuxley():
     LINESTYLE = ['-', ':', '--', '-.']
-    I_INJ = 10 # [nA]
+    I_INJ = 10    # [nA]
+    DT    = 0.025 # [msec]
 
     def __init__(self):
         self.table = {}
@@ -17,6 +18,17 @@ class HodgkinHuxley():
         self.table_min_v = -100.0
         self.table_size = 201
         self.i_inj = []
+        self.cm      =   1.0 # [muF/cm^2]
+        self.e_k     = -77.0 # [mV]
+        self.e_na    =  50.0 # [mV]
+        self.gk_max  =  36.0 # [mS/cm^2]
+        self.gna_max = 120.0 # [mS/cm^2]
+        self.gm      =   0.3 # [mS/cm^3]
+        self.v_rest  = -54.3 # [mV]
+        self.v       = -65.0 # [mV]
+        self.n = self._alpha_n(self.v) / (self._alpha_n(self.v) + self._beta_n(self.v))
+        self.m = self._alpha_m(self.v) / (self._alpha_m(self.v) + self._beta_m(self.v))
+        self.h = self._alpha_h(self.v) / (self._alpha_h(self.v) + self._beta_h(self.v))
         
         self.makeTable()
     
@@ -99,19 +111,23 @@ class HodgkinHuxley():
             st += '\n'
         print st
 
-    def _i_inj(self, t):
+    def _i_inj(self):
+        t = self.t
         if t > 50 and t < 350:
             return self.I_INJ
+        else:
+            return 0.0
          
     def _v2i(self, v):
         i = int(v - self.table_min_v)
         theta = (v - self.table_min_v) - float(i)
-        if(i >= self.table_size-1):
-            i = self.table_size-1
+        if(i >= self.table_size-2):
+            i = self.table_size-2
             theta = 1.0
         if(i < 0):
             i = 0
             theta = 0.0
+        #print i,theta
         
         return i, theta
          
@@ -147,9 +163,39 @@ class HodgkinHuxley():
         h += (1.0 - math.exp(-self.DT/h_tau)) * (h_inf - h)
         self.h = h
         return h
+        
+    def calc_v(self, v, n, m, h):
+        v += self.DT / self.cm \
+        * (self.gk_max * (n**4) * (self.e_k - v) \
+        + self.gna_max * (m**3) * h * (self.e_na - v) \
+        + self.gm * (self.v_rest - v) + self._i_inj())
+        self.v = v
+        return v
 
 if __name__ == '__main__':
     hh = HodgkinHuxley()
     hh.showTable()
     hh.plotDict(hh.table)
+
+    record = {}
+    record['t'] = [0]
+    record['v'] = [hh.v]
+    record['n'] = [hh.n]
+    record['m'] = [hh.m]
+    record['h'] = [hh.h]
+    for i in range(20000):
+        record['t'].append(record['t'][-1] + hh.DT)
+        hh.t = record['t'][-1]
+        record['n'].append(hh.calc_n(record['v'][-1], record['n'][-1]))
+        record['m'].append(hh.calc_m(record['v'][-1], record['m'][-1]))
+        record['h'].append(hh.calc_h(record['v'][-1], record['h'][-1]))
+        record['v'].append(hh.calc_v(record['v'][-1], record['n'][-1], record['m'][-1], record['h'][-1]))
+        
+        
+    plt.plot(record['t'], record['v'])
+    plt.ylim(-80, 80)
+    plt.xlabel('t [msec]')
+    plt.ylabel('V [mV]')
+    plt.show()
+    
 
