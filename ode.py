@@ -9,6 +9,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+def func(x, y):
+    return x + y
+
 def main():
     h = 0.1
     x0 = 0.0
