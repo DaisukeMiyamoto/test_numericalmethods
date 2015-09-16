@@ -7,48 +7,92 @@ Created on Wed Sep 16 21:39:30 2015
 
 import matplotlib.pyplot as plt
 import numpy as np
+import math
 
-def calc_euler(x0, y0, dt, n , f):
-    x = [x0]
-    y = [y0]
-    for i in range(n):
-        y.append(y[-1] + dt * f(x[-1], y[-1]))
-        x.append(x[-1] + dt)
+class SolveODE():
+    LINESTYLE = ['-', ':', '--', '-.']
+    PRINT_RANGE = 10
+
+    def __init__(self, func=None, x0=0.0, y0=1.0, h=0.1, n=100):
+        self.x0 = x0
+        self.y0 = y0
+        self.n  = n
+        self.h  = h
+        self.result = {}
         
-    return x, y
+        self.x = [self.x0]
+        for i in range(self.n):
+            self.x.append(self.x[-1] + self.h)
 
+        if func is None:
+            self.f = self._func
+        else:
+            self.f = func
 
-def func(x, y):
-    return x + y
+    def _func(self, x, y):
+        return x + y
 
-def main():
-    h = 0.1
-    x0 = 0.0
-    y0 = 1.0
-    n = 109
-    y = {}
-
-    x, y['euler'] = calc_euler(x0, y0, h, n, func)
-    
-
-    for i in range(0, n, 10):
-        print '%10.4f :' % x[i] ,
-        for tmp_y in y.values():
-            print ' %10.4f' % tmp_y[i] ,
-        print ''
-
-
-
-    linestyle = ['-', ':', '--', '-.']
-    for k,v in y.items():
-        plt.plot(x, y[k], linestyle=(linestyle[i % len(linestyle)]), linewidth=2, label=k)
-
-    plt.xlabel('X')
-    plt.ylabel('Y')
-    plt.legend(loc=2)
-    plt.show()
+    def __str__(self):
+        st = '     X     :'
+        for k in self.result.keys():
+            for i in range(12 - len(k)):
+                st += '-'
+            st += k + '-'
+        st += '\n'
+        for i in range(0, self.n, self.PRINT_RANGE):
+            st += '%10.4f :' % self.x[i]
+            for tmp_result in self.result.values():
+                st += ' %12.4f' % tmp_result[i]
+            st += '\n'
+        return st
+        
+    def __repr__(self):
+        return repr(self.result)
+        
+    def show_plots(self):
+        i = 0
+        for k,v in self.result.items():
+            plt.plot(self.x, v, linestyle=(self.LINESTYLE[i % len(self.LINESTYLE)]), linewidth=2, label=k)
+            i += 1    
+        plt.xlabel('X')
+        plt.ylabel('Y')
+        plt.legend(loc=2)
+        plt.show()
+        
+    def calc_all(self):
+        self.calc_euler()
+        self.calc_heun()
+        
+    def calc_euler(self):
+        y = [self.y0]
+        for i in xrange(self.n):
+            y.append(y[-1] + self.h * self.f(self.x[i], y[-1]))
+            
+        self.result['euler'] = y
+        return y
+        
+    def calc_heun(self):
+        y = [self.y0]
+        for i in xrange(self.n):
+            k1 = self.f(self.x[i], y[-1])
+            k2 = self.f(self.x[i], y[-1]+self.h*k1)
+            y.append(y[-1] + self.h / 2.0 * (k1 + k2))
+        
+        self.result['heun'] = y
+        return y
+        
 
 if __name__ == '__main__':
-    main()
+    def func0(x, y):
+        return x - y
+
+    def func0(x, y):
+        return x
+    
+    #solve = SolveODE(func)
+    solve = SolveODE()
+    solve.calc_all()
+    print solve
+    solve.show_plots()
     
 
