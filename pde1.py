@@ -17,8 +17,8 @@ class SolvePDE():
     X  = 1.0
     NX = 101
     DT = 0.1
-    NT = 100
-    F  = 0.2
+    NT = 200
+    F  = 0.1
     Y0 = 100
     
     def __init__(self):
@@ -32,17 +32,14 @@ class SolvePDE():
         return repr(self.result)
         
     def plot(self):
-        i = 0
+        #i = 0
+        xx,tt = (np.mat(A) for A in (np.meshgrid(self.x, self.t)))
+        fig = plt.figure()
+        ax = Axes3D(fig)
         for k,v in self.result.items():
             #plt.plot(self.x, v[0], linestyle=(self.LINESTYLE[i % len(self.LINESTYLE)]), linewidth=2, label=k)
             #i += 1
-            print self.t
-            print self.x
-            
-            xx,tt = (np.mat(A) for A in (np.meshgrid(self.x, self.t)))
-            fig = plt.figure()
-            ax = Axes3D(fig)
-            surf = ax.plot_wireframe(xx, tt, v, rstride=5, cstride=5, label=k)
+            ax.plot_wireframe(xx, tt, v, rstride=5, cstride=5, label=k)
 
         plt.xlabel('X')
         plt.ylabel('T [msec]')
@@ -54,9 +51,12 @@ class SolvePDE():
         y = [self.y0]
         for t in self.t[1:]:
             tmp_y = [0]
-            for i in range(1, self.NX):
-                tmp_y.append(y[-1][i])
+            for i in range(1, self.NX-1):                
+                tmp_y.append(y[-1][i] + self.F * (y[-1][i-1] - 2*y[-1][i] + y[-1][i+1]))
+            tmp_y.append(0)
             y.append(tmp_y)
+
+            #u[i] = u_1[i] + F*(u_1[i-1] - 2*u_1[i] + u_1[i+1])
 
         self.result['FTCS'] = y
 
