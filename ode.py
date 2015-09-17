@@ -49,7 +49,7 @@ class SolveODE():
     def __repr__(self):
         return repr(self.result)
         
-    def show_plots(self):
+    def plot(self):
         i = 0
         for k,v in self.result.items():
             plt.plot(self.x, v, linestyle=(self.LINESTYLE[i % len(self.LINESTYLE)]), linewidth=2, label=k)
@@ -112,6 +112,6 @@ if __name__ == '__main__':
     solve = SolveODE()
     solve.calc_all()
     print solve
-    solve.show_plots()
+    solve.plot()
     
 
