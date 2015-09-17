@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 class HodgkinHuxley():
     LINESTYLE = ['-', ':', '--', '-.']
-    I_INJ = 10    # [nA]
+    I_INJ = 5    # [nA]
     DT    = 0.025 # [msec]
 
     def __init__(self):
@@ -91,9 +91,9 @@ class HodgkinHuxley():
         for k,v in dct.items():
             plt.plot(rng, v, linestyle=(self.LINESTYLE[i % len(self.LINESTYLE)]), linewidth=2, label=k)
             i += 1    
-        plt.xlabel('X')
+        plt.xlabel('V [mV]')
         plt.ylabel('Y')
-        plt.legend(loc=2)
+        plt.legend()
         plt.show()
         
     
@@ -113,7 +113,7 @@ class HodgkinHuxley():
 
     def _i_inj(self):
         t = self.t
-        if t > 50 and t < 350:
+        if t > 5:
             return self.I_INJ
         else:
             return 0.0
@@ -183,7 +183,7 @@ if __name__ == '__main__':
     record['n'] = [hh.n]
     record['m'] = [hh.m]
     record['h'] = [hh.h]
-    for i in range(20000):
+    for i in range(1000):
         record['t'].append(record['t'][-1] + hh.DT)
         hh.t = record['t'][-1]
         record['n'].append(hh.calc_n(record['v'][-1], record['n'][-1]))
@@ -197,5 +197,19 @@ if __name__ == '__main__':
     plt.xlabel('t [msec]')
     plt.ylabel('V [mV]')
     plt.show()
+
+    plt.plot(record['t'], record['m'], label='m')
+    plt.plot(record['t'], record['h'], label='h')
+    plt.plot(record['t'], record['n'], label='n')
+    n4 = [n**4 for n in record['n']]
+    m3h = [m**3*h for m,h in zip(record['m'], record['h'])]
+    plt.plot(record['t'], m3h, label='m^3 * h')
+    plt.plot(record['t'], n4, label='n^4')
+    plt.legend(loc=1)
+    plt.xlabel('t [msec]')
+    plt.show()
     
+    #plt.legend(loc=1)
+    #plt.xlabel('t [msec]')
+    #plt.show()
 
